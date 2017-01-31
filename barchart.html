@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+body {
+    background-color: #ccc;
+    width: 100%;
+    font-family: 'Roboto', sans-serif;
+    height: 100%;
+}
+
+.widget {
+    margin: 0 auto;
+    width:950px;
+    margin-top:50px;
+    background-color:#fff;
+    -background-color: #222D3A;
+    border-radius: 5px;
+    box-shadow: 1px 1px 4px 0px rgba(0,0,0,0.3);
+
+}
+
+.header{
+    background-color: #eee;
+    height:40px;
+    color:#555;
+    text-align: center;
+    line-height: 40px;
+    border-top-left-radius: 7px;
+    border-top-right-radius: 7px;
+    font-weight: 400;
+    font-size: 1.5em;
+    text-shadow: 1px 1px #fff;
+    border-bottom: 1px solid #eaeaea;
+}
+
+.chart-container{
+    padding:25px;
+}
+
+.axis path,
+.axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+
+</style>
+<body>
+  <div class="widget">
+    <div class="header">Stacked Bar Chart</div>
+    <div id="chart" class="chart-container">
+
+    </div>
+</div>
+<script src="//d3js.org/d3.v3.min.js"></script>
+<script>
+  function drawBarChart(data){
+    data = JSON.parse(data);
+    var xData = ["OVER$500", "$500ANDUNDER"];
+    var margin = {top: 20, right: 50, bottom: 30, left: 0},
+            width = 950 - margin.left - margin.right,
+            height = 300 - margin.top - margin.bottom;
+    var x = d3.scale.ordinal()
+            .rangeRoundBands([0, width], .35);
+    var y = d3.scale.linear()
+            .rangeRound([height, 0]);
+    var color = d3.scale.category20();
+    var xAxis = d3.svg.axis()
+            .scale(x)
+            .orient("bottom");
+    var yAxis = d3.svg.axis()
+            .scale(y)
+            .orient("left");
+    var svg = d3.select("#chart").append("svg")
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom)
+            .append("g")
+            .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+    var dataIntermediate = xData.map(function (c) {
+        return data.map(function (d) {
+            return {x: d.year, y: d[c]};
+        });
+    });
+    var dataStackLayout = d3.layout.stack()(dataIntermediate);
+    x.domain(dataStackLayout[0].map(function (d) {
+        return d.x;
+    }));
+    y.domain([0,
+        d3.max(dataStackLayout[dataStackLayout.length - 1],
+                function (d) { return d.y0 + d.y;})
+        ])
+      .nice();
+    var layer = svg.selectAll(".stack")
+            .data(dataStackLayout)
+            .enter().append("g")
+            .attr("class", "stack")
+            .style("fill", function (d, i) {
+                return color(i);
+            });
+    layer.selectAll("rect")
+            .data(function (d) {
+                return d;
+            })
+            .enter().append("rect")
+            .attr("x", function (d) {
+                return x(d.x);
+            })
+            .attr("y", function (d) {
+                return y(d.y + d.y0);
+            })
+            .attr("height", function (d) {
+                return y(d.y0) - y(d.y + d.y0);
+            })
+            .attr("width", x.rangeBand());
+    svg.append("g")
+            .attr("class", "x axis")
+            .attr("transform", "translate(0," + height + ")")
+            .call(xAxis);
+    svg.append("g")     // Add the Y Axis
+        .attr("class", "y axis")
+        .style("stroke", "blue")
+        .call(yAxis);
+  }
+  var xobj = new XMLHttpRequest();
+        xobj.overrideMimeType("application/json");
+    xobj.open('GET', 'json/barjson.json', true); 
+    xobj.onreadystatechange = function () {
+          if (xobj.readyState == 4 && xobj.status == "200") {
+            drawBarChart(xobj.responseText);
+          }
+    };
+    xobj.send(null);
+</script>
