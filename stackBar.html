@@ -27,10 +27,10 @@
          width=950-margin.left-margin.right,
          height=370-margin.top-margin.bottom;
 
-      var horizontal=d3.scale.ordinal().rangeRoundBands([0,width],0.25),
+      var horizontal=d3.scale.ordinal().rangeRoundBands([-6,width],0.25),
          vertical=d3.scale.linear().rangeRound([height,0]);
 
-      var color = d3.scale.category20b();
+      var color = d3.scale.category10();
 
       var xAxis=d3.svg.axis()
          .scale(horizontal)
@@ -52,6 +52,7 @@
          d.year=+d.year;
          d.OVER$500=+d.OVER$500;
          d.$500ANDUNDER=+d.$500ANDUNDER;
+         // d.OVER$500 -= d.$500ANDUNDER;
        });
       var xData=["OVER$500","$500ANDUNDER"];
        var dataIntermediate = xData.map(function (c) {
@@ -99,10 +100,12 @@
        svg.append("g")
            .attr("class", "axis")
            .attr("transform", "translate(0," + height + ")")
+           .style("fill","green")
            .call(xAxis);
 
       svg.append("g")
          .attr("class", "axis")
+          .style("fill","green")
          .call(yAxis);
 
          //adding legends
@@ -123,7 +126,7 @@
             .attr("y", 9)
             .attr("dy", ".45em")
             .style("text-anchor", "end")
-            .style("fill","black")
+            .style("fill","green")
             .style("font-size","20px")
             .text(function(d,i) { return xData[i]; });
 
